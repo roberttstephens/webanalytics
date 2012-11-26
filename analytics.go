@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+  "os"
+  "time"
 )
 
 type PageView struct {
@@ -15,24 +17,33 @@ type PageView struct {
 	UserAgent  string `json:"userAgent"`
 }
 
+func logError(s error) {
+  f, err := os.OpenFile("var/error.log", os.O_APPEND|os.O_WRONLY, 0600)
+  if err != nil {
+    panic(err)
+  }
+  defer f.Close()
+
+  _, err = f.WriteString(fmt.Sprintf("%v\t%s\n", time.Now(), s))
+  if err != nil {
+    panic(err)
+  }
+}
+
 func pageViewsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		return
 	}
-	fmt.Printf("Post received\n")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("Readall Error: ", err)
+		logError(err)
 		return
 	}
 	pageView := PageView{}
 	err = json.Unmarshal(body, &pageView)
 	if err != nil {
-		fmt.Println(err)
+		logError(err)
 	}
-	fmt.Printf("Results: %v\n", pageView)
-	fmt.Printf("Ip Address: %v\n", pageView.IpAddress)
-	// TODO insert into db
 }
 
 func hrefClickHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +53,5 @@ func hrefClickHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/page-views/", pageViewsHandler)
 	http.HandleFunc("/href-click/", hrefClickHandler)
-	ReadConfig()
 	http.ListenAndServe(":8080", nil)
 }

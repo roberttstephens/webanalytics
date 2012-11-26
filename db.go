@@ -10,22 +10,34 @@ import (
 
 type DbConfig struct {
 	Host string `json:"host"`
+	Port int    `json:"port"`
 	User string `json:"user"`
 	Pass string `json:"pass"`
 	Name string `json:"name"`
 }
 
-func ReadConfig() {
+func ReadDbConfig() DbConfig {
 	dbConfig := DbConfig{}
 	dbConfigFile, err := ioutil.ReadFile("db_config.json")
 	if err != nil {
-		panic(err)
+    panic(err)
 	}
 	err = json.Unmarshal(dbConfigFile, &dbConfig)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
-	fmt.Printf("%v", dbConfig)
+	return dbConfig
+}
+
+func Db() *sql.DB {
+	dbConfig := ReadDbConfig()
+	db, err := sql.Open("postgres",
+		fmt.Sprintf("user=%s password=%s host=%s dbname=%s", dbConfig.User,
+			dbConfig.Pass, dbConfig.Host, dbConfig.Name))
+	if err != nil {
+		panic(err)
+	}
+	return db
 }
 
 // TODO maybe add a setPageView method and setHhrefClick method.
@@ -33,10 +45,7 @@ func ReadConfig() {
 // many page views and href clicks to store in memory, and a maximum timeout
 
 func PageViews() {
-	db, err := sql.Open("postgres", "user=analytics password=analytics host=127.0.0.1 dbname=analytics")
-	if err != nil {
-		fmt.Println(err)
-	}
+	db := Db()
 	rows, err := db.Query("select * from page_view")
 	if err != nil {
 		fmt.Println(err)
@@ -52,4 +61,11 @@ func PageViews() {
 		fmt.Println(url)
 	}
 	rows.Close()
+}
+
+func setPageView() {
+  db := Db()
+  sql := fmt.Sprintf("INSERT INTO page_view(ip_address, url, time, browser) VALUES ('%s', '%s', NOW(), '%s')",
+    
+
 }
