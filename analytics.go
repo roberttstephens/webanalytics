@@ -28,10 +28,11 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request) {
 	pageView := PageView{}
 	err = json.Unmarshal(body, &pageView)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println(err)
 	}
 	fmt.Printf("Results: %v\n", pageView)
 	fmt.Printf("Ip Address: %v\n", pageView.IpAddress)
+	// TODO insert into db
 }
 
 func hrefClickHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,5 +42,6 @@ func hrefClickHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/page-views/", pageViewsHandler)
 	http.HandleFunc("/href-click/", hrefClickHandler)
+	ReadConfig()
 	http.ListenAndServe(":8080", nil)
 }

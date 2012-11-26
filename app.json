@@ -1,0 +1,4 @@
+{
+  "maxBatchInsert": 2000,
+  "maxBatchInsertSeconds": 180
+}
