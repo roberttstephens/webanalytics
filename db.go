@@ -18,7 +18,7 @@ type DbConfig struct {
 
 func ReadDbConfig() DbConfig {
 	dbConfig := DbConfig{}
-	dbConfigFile, err := ioutil.ReadFile("db_config.json")
+	dbConfigFile, err := ioutil.ReadFile("config/db.json")
 	if err != nil {
     panic(err)
 	}
