@@ -63,9 +63,15 @@ func PageViews() {
 	rows.Close()
 }
 
-func setPageView() {
+func SetPageView(p PageView) {
   db := Db()
-  sql := fmt.Sprintf("INSERT INTO page_view(ip_address, url, time, browser) VALUES ('%s', '%s', NOW(), '%s')",
-    
+  stmt, err := db.Prepare("INSERT INTO page_view(ip_address, url, time, browser) VALUES ('$1', '$2', NOW(), '$3')")
+  if err != nil {
+    logError(err)
+  }
+  _, err = stmt.Exec(p.IpAddress, p.Url, p.UserAgent)
+  if err != nil {
+    logError(err)
+  }
 
 }

@@ -44,6 +44,7 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logError(err)
 	}
+  SetPageView(pageView)
 }
 
 func hrefClickHandler(w http.ResponseWriter, r *http.Request) {
