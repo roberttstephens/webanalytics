@@ -20,7 +20,7 @@ func ReadDbConfig() DbConfig {
 	dbConfig := DbConfig{}
 	dbConfigFile, err := ioutil.ReadFile("config/db.json")
 	if err != nil {
-    panic(err)
+		panic(err)
 	}
 	err = json.Unmarshal(dbConfigFile, &dbConfig)
 	if err != nil {
@@ -64,14 +64,26 @@ func PageViews() {
 }
 
 func SetPageView(p PageView) {
-  db := Db()
-  stmt, err := db.Prepare("INSERT INTO page_view(ip_address, url, time, browser) VALUES ('$1', '$2', NOW(), '$3')")
-  if err != nil {
-    logError(err)
-  }
-  _, err = stmt.Exec(p.IpAddress, p.Url, p.UserAgent)
-  if err != nil {
-    logError(err)
-  }
+	db := Db()
+	stmt, err := db.Prepare("INSERT INTO page_view(timestamp, url, ip_address, user_agent, screen_height, screen_width) VALUES (NOW(), $1, $2, $3, $4, $5)")
+	if err != nil {
+		logError(err)
+	}
+	_, err = stmt.Exec(p.Url, p.IpAddress, p.UserAgent, p.ScreenHeight, p.ScreenWidth)
+	if err != nil {
+		logError(err)
+	}
+}
 
+func SetHrefClick(h HrefClick) {
+	db := Db()
+	stmt, err := db.Prepare("INSERT INTO href_click(timestamp, url, ip_address, href, href_rectangle) VALUES (NOW(), $1, $2, $3, box(point($4,$5), point($6,$7)))")
+	if err != nil {
+		logError(err)
+	}
+	_, err = stmt.Exec(h.Url, h.IpAddress, h.Href, h.HrefTop, h.HrefRight, h.HrefBottom, h.HrefLeft)
+	if err != nil {
+		logError(err)
+	}
+	fmt.Print("%v", h)
 }

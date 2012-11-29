@@ -5,54 +5,99 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-  "os"
-  "time"
+	"os"
+	"strings"
+	"time"
 )
 
+func IpAddress(remoteAddr string) string {
+	arr := strings.Split(remoteAddr, ":")
+	return arr[0]
+}
+
 type PageView struct {
+	Domain       string `json:"domain"`
+	IpAddress    string `json:"ipAddress"`
+	Url          string `json:"url"`
+	UserAgent    string `json:"userAgent"`
+	ScreenHeight int    `json:"screenHeight"`
+	ScreenWidth  int    `json:"screenWidth"`
+	Status       string `json:"status"`
+}
+
+type HrefClick struct {
 	IpAddress  string `json:"ipAddress"`
-	ScreenSize string `json:"screenSize"`
-	Timestamp  int    `json:"timestamp"`
 	Url        string `json:"url"`
-	UserAgent  string `json:"userAgent"`
+	Href       string `json:"href"`
+	HrefTop    int    `json:"hrefTop"`
+	HrefRight  int    `json:"hrefRight"`
+	HrefBottom int    `json:"hrefBottom"`
+	HrefLeft   int    `json:"hrefLeft"`
+	Status     string `json:"status"`
 }
 
 func logError(s error) {
-  f, err := os.OpenFile("var/error.log", os.O_APPEND|os.O_WRONLY, 0600)
-  if err != nil {
-    panic(err)
-  }
-  defer f.Close()
+	f, err := os.OpenFile("var/error.log", os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
 
-  _, err = f.WriteString(fmt.Sprintf("%v\t%s\n", time.Now(), s))
-  if err != nil {
-    panic(err)
-  }
+	_, err = f.WriteString(fmt.Sprintf("%v\t%s\n", time.Now(), s))
+	if err != nil {
+		panic(err)
+	}
 }
 
-func pageViewsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		return
-	}
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		logError(err)
-		return
-	}
+func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
+  fmt.Println(string(body))
 	pageView := PageView{}
-	err = json.Unmarshal(body, &pageView)
+	err := json.Unmarshal(body, &pageView)
 	if err != nil {
 		logError(err)
 	}
-  SetPageView(pageView)
+	// Get ip address from http request
+	pageView.IpAddress = IpAddress(r.RemoteAddr)
+	SetPageView(pageView)
+	pageView.Status = "ok"
+	responseJson, err := json.Marshal(pageView)
+	fmt.Fprintf(w, string(responseJson))
 }
 
-func hrefClickHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO parse JSON from post, insert into DB.
+func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
+	hrefClick := HrefClick{}
+	err := json.Unmarshal(body, &hrefClick)
+	if err != nil {
+		logError(err)
+	}
+	// Get ip address from http request
+	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
+	SetHrefClick(hrefClick)
+	hrefClick.Status = "ok"
+	responseJson, err := json.Marshal(hrefClick)
+	fmt.Fprintf(w, string(responseJson))
+}
+
+func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Headers", "x-requested-with, x-requested-by, Content-Type")
+		w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		if r.Method != "POST" {
+			return
+		}
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			logError(err)
+			return
+		}
+		fn(w, r, body)
+	}
 }
 
 func main() {
-	http.HandleFunc("/page-views/", pageViewsHandler)
-	http.HandleFunc("/href-click/", hrefClickHandler)
+	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
+	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
 	http.ListenAndServe(":8080", nil)
 }

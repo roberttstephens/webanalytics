@@ -1,0 +1,37 @@
+On a few occassions, I wished I had more data about web sites that I work on. A basic example is finding out how many visitors a site has. The obvious solution is to look at web server logs, but a lot of times the web server is cached behind varnish.
+
+So if you want web analytics, you can use one or more of several third party services. I wanted to come up with a simple open source solution that covers some common use cases.
+
+I wanted to solve the following questions:
+
+How many page views am I getting? (Sometimes it's difficult to tell with varnish)
+What percentage of users are still on IE x?
+Are users clicking on anything in the related articles block on my page?
+Should I display 20 blog posts, or 10? (Is the content on the bottom being clicked on?)
+
+The application layer code will be simple, but it needs to be performant. We want to use this to track several high traffic websites. I would like to aim for 1000 inserts per second (through the application). I'm concerned about python or php keeping up, and I want to learn go.
+
+The database design is purposefully simple. It needs to be performant on writes. Very little processing is done on the way out. We're expecting to deal with a large number of records. It's probably best to set up a cron that moves records to back up tables. I'm going to play around with consolodating into a more relational design.
+
+
+Tables
+
+page_view
+id, ip_address, url, timestamp, user_agent, screen size, 
+
+href_click
+pvid, href, href_location, timestamp
+
+url = document.URL
+browser = http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
+href_location = getBoundingClientRect
+  
+top: -337
+right: 391
+bottom: -337
+left: 164
+
+rectangle will be a postgres type 'box'
+it will be inserted as
+top, right, bottom, left
+
