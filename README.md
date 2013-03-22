@@ -33,9 +33,14 @@ rectangle will be a postgres type 'box'
 it will be inserted as
 top, right, bottom, left
 
-// TODO
+##TODO
+
+###Domains
 create a table for domains
 add columns to page_view and href_click for did (domain id)
 on the start of analytics, load all domains and primary id into memory.
 on a request, map the domain to the id. 
 insert did into table.
+
+###Batch insert
+Read from app.json and wrap multiple inserts into a transaction.
