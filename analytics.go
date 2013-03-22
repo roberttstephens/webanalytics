@@ -50,7 +50,6 @@ func logError(s error) {
 }
 
 func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
-  fmt.Println(string(body))
 	pageView := PageView{}
 	err := json.Unmarshal(body, &pageView)
 	if err != nil {
