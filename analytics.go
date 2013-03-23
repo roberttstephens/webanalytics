@@ -25,6 +25,8 @@ type PageView struct {
 	Status       string `json:"status"`
 }
 
+var pageViews []PageView
+
 type HrefClick struct {
 	IpAddress  string `json:"ipAddress"`
 	Url        string `json:"url"`
@@ -49,6 +51,12 @@ func logError(s error) {
 	}
 }
 
+func SetRecords(d time.Duration) {
+	for _ = range time.Tick(d) {
+		SetPageViews()
+	}
+}
+
 func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	pageView := PageView{}
 	err := json.Unmarshal(body, &pageView)
@@ -57,7 +65,8 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	}
 	// Get ip address from http request
 	pageView.IpAddress = IpAddress(r.RemoteAddr)
-	SetPageView(pageView)
+	//SetPageView(pageView)
+	pageViews = append(pageViews, pageView)
 	pageView.Status = "ok"
 	responseJson, err := json.Marshal(pageView)
 	fmt.Fprintf(w, string(responseJson))
@@ -98,5 +107,6 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 func main() {
 	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
 	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
+	go SetRecords(8 * time.Second)
 	http.ListenAndServe(":8080", nil)
 }
