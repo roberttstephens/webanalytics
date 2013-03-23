@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-func IpAddress(remoteAddr string) string {
-	arr := strings.Split(remoteAddr, ":")
-	return arr[0]
-}
-
 type PageView struct {
 	Domain       string `json:"domain"`
 	IpAddress    string `json:"ipAddress"`
@@ -38,6 +33,13 @@ type HrefClick struct {
 	Status     string `json:"status"`
 }
 
+var hrefClicks []HrefClick
+
+func IpAddress(remoteAddr string) string {
+	arr := strings.Split(remoteAddr, ":")
+	return arr[0]
+}
+
 func logError(s error) {
 	f, err := os.OpenFile("var/error.log", os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
@@ -51,13 +53,18 @@ func logError(s error) {
 	}
 }
 
-func SetRecords(d time.Duration) {
-	for _ = range time.Tick(d) {
-		newPageViews := make([]PageView, len(pageViews))
-		copy(newPageViews, pageViews)
-		go SetPageViews(newPageViews)
-		pageViews = pageViews[0:0]
+func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
+	hrefClick := HrefClick{}
+	err := json.Unmarshal(body, &hrefClick)
+	if err != nil {
+		logError(err)
 	}
+	// Get ip address from http request
+	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
+	SetHrefClick(hrefClick)
+	hrefClick.Status = "ok"
+	responseJson, err := json.Marshal(hrefClick)
+	fmt.Fprintf(w, string(responseJson))
 }
 
 func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
@@ -75,18 +82,13 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	fmt.Fprintf(w, string(responseJson))
 }
 
-func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
-	hrefClick := HrefClick{}
-	err := json.Unmarshal(body, &hrefClick)
-	if err != nil {
-		logError(err)
+func SetRecords(d time.Duration) {
+	for _ = range time.Tick(d) {
+		newPageViews := make([]PageView, len(pageViews))
+		copy(newPageViews, pageViews)
+		go SetPageViews(newPageViews)
+		pageViews = pageViews[0:0]
 	}
-	// Get ip address from http request
-	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
-	SetHrefClick(hrefClick)
-	hrefClick.Status = "ok"
-	responseJson, err := json.Marshal(hrefClick)
-	fmt.Fprintf(w, string(responseJson))
 }
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.HandlerFunc {
