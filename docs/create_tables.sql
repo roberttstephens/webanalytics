@@ -8,7 +8,7 @@ CREATE TABLE href_click (
 );
 CREATE TABLE page_view (
     id serial,
-    "time" timestamp without time zone,
+    "timestamp" timestamp without time zone,
     url text,
     ip_address text,
     user_agent text,
