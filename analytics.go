@@ -53,7 +53,10 @@ func logError(s error) {
 
 func SetRecords(d time.Duration) {
 	for _ = range time.Tick(d) {
-		SetPageViews()
+		newPageViews := make([]PageView, len(pageViews))
+		copy(newPageViews, pageViews)
+		go SetPageViews(newPageViews)
+		pageViews = pageViews[0:0]
 	}
 }
 

@@ -63,21 +63,16 @@ func PageViews() {
 	rows.Close()
 }
 
-func SetPageViews() {
-	if len(pageViews) < 1 {
-		return
-	}
+func SetPageViews(p []PageView) {
 	db := Db()
 	tx, _ := db.Begin()
 	stmt, err := db.Prepare("INSERT INTO page_view(timestamp, url, ip_address, user_agent, screen_height, screen_width) VALUES (NOW(), $1, $2, $3, $4, $5)")
 	if err != nil {
 		logError(err)
 	}
-	for _, p := range pageViews {
+	for _, p := range p {
 		tx.Stmt(stmt).Exec(p.Url, p.IpAddress, p.UserAgent, p.ScreenHeight, p.ScreenWidth)
 	}
-	// Empty the slice.
-	pageViews = pageViews[0:0]
 	tx.Commit()
 }
 
