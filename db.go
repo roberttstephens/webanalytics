@@ -40,10 +40,6 @@ func Db() *sql.DB {
 	return db
 }
 
-// TODO maybe add a setPageView method and setHhrefClick method.
-// The set setPageView method will read from app.yaml and will determine how
-// many page views and href clicks to store in memory, and a maximum timeout
-
 func PageViews() {
 	db := Db()
 	rows, err := db.Query("select * from page_view")
@@ -64,6 +60,9 @@ func PageViews() {
 }
 
 func SetPageViews(p []PageView) {
+	if len(p) < 1 {
+		return
+	}
 	db := Db()
 	tx, _ := db.Begin()
 	stmt, err := db.Prepare("INSERT INTO page_view(timestamp, url, ip_address, user_agent, screen_height, screen_width) VALUES (NOW(), $1, $2, $3, $4, $5)")
@@ -76,15 +75,17 @@ func SetPageViews(p []PageView) {
 	tx.Commit()
 }
 
-func SetHrefClick(h HrefClick) {
+func SetHrefClicks(h []HrefClick) {
+	if len(h) < 1 {
+		return
+	}
 	db := Db()
+	tx, _ := db.Begin()
 	stmt, err := db.Prepare("INSERT INTO href_click(timestamp, url, ip_address, href, href_rectangle) VALUES (NOW(), $1, $2, $3, box(point($4,$5), point($6,$7)))")
 	if err != nil {
 		logError(err)
 	}
-	_, err = stmt.Exec(h.Url, h.IpAddress, h.Href, h.HrefTop, h.HrefRight, h.HrefBottom, h.HrefLeft)
-	if err != nil {
-		logError(err)
+	for _, h := range h {
+		tx.Stmt(stmt).Exec(h.Url, h.IpAddress, h.Href, h.HrefTop, h.HrefRight, h.HrefBottom, h.HrefLeft)
 	}
-	fmt.Print("%v", h)
 }

@@ -10,18 +10,6 @@ import (
 	"time"
 )
 
-type PageView struct {
-	Domain       string `json:"domain"`
-	IpAddress    string `json:"ipAddress"`
-	Url          string `json:"url"`
-	UserAgent    string `json:"userAgent"`
-	ScreenHeight int    `json:"screenHeight"`
-	ScreenWidth  int    `json:"screenWidth"`
-	Status       string `json:"status"`
-}
-
-var pageViews []PageView
-
 type HrefClick struct {
 	IpAddress  string `json:"ipAddress"`
 	Url        string `json:"url"`
@@ -34,6 +22,18 @@ type HrefClick struct {
 }
 
 var hrefClicks []HrefClick
+
+type PageView struct {
+	Domain       string `json:"domain"`
+	IpAddress    string `json:"ipAddress"`
+	Url          string `json:"url"`
+	UserAgent    string `json:"userAgent"`
+	ScreenHeight int    `json:"screenHeight"`
+	ScreenWidth  int    `json:"screenWidth"`
+	Status       string `json:"status"`
+}
+
+var pageViews []PageView
 
 func IpAddress(remoteAddr string) string {
 	arr := strings.Split(remoteAddr, ":")
@@ -61,7 +61,7 @@ func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	}
 	// Get ip address from http request
 	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
-	SetHrefClick(hrefClick)
+	hrefClicks = append(hrefClicks, hrefClick)
 	hrefClick.Status = "ok"
 	responseJson, err := json.Marshal(hrefClick)
 	fmt.Fprintf(w, string(responseJson))
@@ -75,7 +75,6 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	}
 	// Get ip address from http request
 	pageView.IpAddress = IpAddress(r.RemoteAddr)
-	//SetPageView(pageView)
 	pageViews = append(pageViews, pageView)
 	pageView.Status = "ok"
 	responseJson, err := json.Marshal(pageView)
@@ -83,11 +82,19 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 }
 
 func SetRecords(d time.Duration) {
+	// Run every d seconds.
 	for _ = range time.Tick(d) {
+		// Handle page views.
 		newPageViews := make([]PageView, len(pageViews))
 		copy(newPageViews, pageViews)
 		go SetPageViews(newPageViews)
 		pageViews = pageViews[0:0]
+
+		// Handle href clicks.
+		newHrefClicks := make([]HrefClick, len(hrefClicks))
+		copy(newHrefClicks, hrefClicks)
+		go SetHrefClicks(newHrefClicks)
+		hrefClicks = hrefClicks[0:0]
 	}
 }
 
