@@ -88,4 +88,5 @@ func SetHrefClicks(h []HrefClick) {
 	for _, h := range h {
 		tx.Stmt(stmt).Exec(h.Url, h.IpAddress, h.Href, h.HrefTop, h.HrefRight, h.HrefBottom, h.HrefLeft)
 	}
+	tx.Commit()
 }
