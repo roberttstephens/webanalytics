@@ -10,6 +10,23 @@ import (
 	"time"
 )
 
+type AppConfig struct {
+	BatchInsertSeconds int    `json:"batchInsertSeconds"`
+}
+
+func ReadAppConfig() AppConfig {
+	appConfig := AppConfig{}
+	appConfigFile, err := ioutil.ReadFile("config/app.json")
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(appConfigFile, &appConfig)
+	if err != nil {
+		panic(err)
+	}
+	return appConfig
+}
+
 type HrefClick struct {
 	IpAddress  string `json:"ipAddress"`
 	Url        string `json:"url"`
@@ -81,9 +98,11 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	fmt.Fprintf(w, string(responseJson))
 }
 
-func SetRecords(d time.Duration) {
-	// Run every d seconds.
-	for _ = range time.Tick(d) {
+func ListenForRecords() {
+	appConfig := ReadAppConfig()
+	seconds := time.Duration(appConfig.BatchInsertSeconds)*time.Second
+	// Run every x seconds.
+	for _ = range time.Tick(seconds) {
 		// Handle page views.
 		newPageViews := make([]PageView, len(pageViews))
 		copy(newPageViews, pageViews)
@@ -119,6 +138,6 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 func main() {
 	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
 	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
-	go SetRecords(8 * time.Second)
+	go ListenForRecords()
 	http.ListenAndServe(":8080", nil)
 }

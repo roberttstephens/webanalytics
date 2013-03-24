@@ -1,4 +1,3 @@
 {
-  "maxBatchInsert": 2000,
-  "maxBatchInsertSeconds": 180
+  "batchInsertSeconds": 2
 }
