@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	_ "github.com/bmizerany/pq"
 	"io/ioutil"
 )
@@ -20,11 +21,11 @@ func ReadDbConfig() DbConfig {
 	dbConfig := DbConfig{}
 	dbConfigFile, err := ioutil.ReadFile("config/db.json")
 	if err != nil {
-		panic(err)
+		log.Fatal("Unable to read config/db.json: ", err)
 	}
 	err = json.Unmarshal(dbConfigFile, &dbConfig)
 	if err != nil {
-		panic(err)
+		log.Fatal("Unable to unmarshal dbConfig: ", err)
 	}
 	return dbConfig
 }
@@ -35,7 +36,7 @@ func Db() *sql.DB {
 		fmt.Sprintf("user=%s password=%s host=%s dbname=%s", dbConfig.User,
 			dbConfig.Pass, dbConfig.Host, dbConfig.Name))
 	if err != nil {
-		panic(err)
+		log.Fatal("Unable to connect to the database: ", err)
 	}
 	return db
 }
@@ -67,7 +68,7 @@ func SetPageViews(p []PageView) {
 	tx, _ := db.Begin()
 	stmt, err := db.Prepare("INSERT INTO page_view(timestamp, url, ip_address, user_agent, screen_height, screen_width) VALUES (NOW(), $1, $2, $3, $4, $5)")
 	if err != nil {
-		logError(err)
+		log.Println("Unable to prepare statment for PageView: ", err)
 	}
 	for _, p := range p {
 		tx.Stmt(stmt).Exec(p.Url, p.IpAddress, p.UserAgent, p.ScreenHeight, p.ScreenWidth)
@@ -83,7 +84,7 @@ func SetHrefClicks(h []HrefClick) {
 	tx, _ := db.Begin()
 	stmt, err := db.Prepare("INSERT INTO href_click(timestamp, url, ip_address, href, href_rectangle) VALUES (NOW(), $1, $2, $3, box(point($4,$5), point($6,$7)))")
 	if err != nil {
-		logError(err)
+		log.Println("Unable to prepare statment for HrefClick: ", err)
 	}
 	for _, h := range h {
 		tx.Stmt(stmt).Exec(h.Url, h.IpAddress, h.Href, h.HrefTop, h.HrefRight, h.HrefBottom, h.HrefLeft)

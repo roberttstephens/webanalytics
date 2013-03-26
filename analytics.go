@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -57,24 +58,11 @@ func IpAddress(remoteAddr string) string {
 	return arr[0]
 }
 
-func logError(s error) {
-	f, err := os.OpenFile("var/error.log", os.O_APPEND|os.O_WRONLY, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	_, err = f.WriteString(fmt.Sprintf("%v\t%s\n", time.Now(), s))
-	if err != nil {
-		panic(err)
-	}
-}
-
 func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	hrefClick := HrefClick{}
 	err := json.Unmarshal(body, &hrefClick)
 	if err != nil {
-		logError(err)
+		log.Println("Unable to unmarshal hrefClick: ", err)
 	}
 	// Get ip address from http request
 	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
@@ -88,7 +76,7 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	pageView := PageView{}
 	err := json.Unmarshal(body, &pageView)
 	if err != nil {
-		logError(err)
+		log.Println("Unable to unmarshal pageView: ", err)
 	}
 	// Get ip address from http request
 	pageView.IpAddress = IpAddress(r.RemoteAddr)
@@ -128,14 +116,19 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 		}
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			logError(err)
-			return
+			log.Println("Unable to read requeset body: ", err)
 		}
 		fn(w, r, body)
 	}
 }
 
 func main() {
+	logfile, err := os.OpenFile("var/error.log",
+	        os.O_WRONLY|os.O_APPEND|os.O_CREATE|os.O_SYNC, 0600)
+	if err != nil {
+	        log.Fatal("Unable to open log file: ", err)
+	}
+	log.SetOutput(logfile)
 	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
 	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
 	go ListenForRecords()
