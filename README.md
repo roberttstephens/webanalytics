@@ -15,3 +15,13 @@ If you want web analytics, you can use one or more of several third party servic
 - Uses go (golang) to process requests, via a RESTful API.
 - Uses a postgresql database. The database design is purposefully simple in order to be efficient with writes.
 - Uses javascript to submit posts.
+
+##How to use
+- As mentioned in About the project, analytics.go uses postgresql. Create a user and database for analytics.
+- cd /path/to/some/directory
+- git clone https://github.com/roberttstephens/analytics.go.git
+- cd analytics.go
+- nano config/db.json #Configure with your database credentials.
+- nano config/app.json
+- go build -o analytics
+- ./analytics #Runs on port 8080 by default. Change in config/app.json
