@@ -19,11 +19,10 @@ func ReadAppConfig() AppConfig {
 	appConfig := AppConfig{}
 	appConfigFile, err := ioutil.ReadFile("config/app.json")
 	if err != nil {
-		panic(err)
+	        log.Fatal("Unable to read config file: ", err)
 	}
-	err = json.Unmarshal(appConfigFile, &appConfig)
-	if err != nil {
-		panic(err)
+	if err = json.Unmarshal(appConfigFile, &appConfig); err != nil {
+	        log.Fatal("Unable to unmarshal appConfigFile into appConfig: ", err)
 	}
 	return appConfig
 }
@@ -60,29 +59,27 @@ func IpAddress(remoteAddr string) string {
 
 func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	hrefClick := HrefClick{}
-	err := json.Unmarshal(body, &hrefClick)
-	if err != nil {
+	if err := json.Unmarshal(body, &hrefClick); err != nil {
 		log.Println("Unable to unmarshal hrefClick: ", err)
 	}
 	// Get ip address from http request
 	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
 	hrefClicks = append(hrefClicks, hrefClick)
 	hrefClick.Status = "ok"
-	responseJson, err := json.Marshal(hrefClick)
+	responseJson, _ := json.Marshal(hrefClick)
 	fmt.Fprintf(w, string(responseJson))
 }
 
 func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	pageView := PageView{}
-	err := json.Unmarshal(body, &pageView)
-	if err != nil {
+	if err := json.Unmarshal(body, &pageView); err != nil {
 		log.Println("Unable to unmarshal pageView: ", err)
 	}
 	// Get ip address from http request
 	pageView.IpAddress = IpAddress(r.RemoteAddr)
 	pageViews = append(pageViews, pageView)
 	pageView.Status = "ok"
-	responseJson, err := json.Marshal(pageView)
+	responseJson, _ := json.Marshal(pageView)
 	fmt.Fprintf(w, string(responseJson))
 }
 
@@ -112,6 +109,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 		w.Header().Add("Access-Control-Allow-Headers", "x-requested-with, x-requested-by, Content-Type")
 		w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		if r.Method != "POST" {
+			w.WriteHeader(405)
 			return
 		}
 		body, err := ioutil.ReadAll(r.Body)

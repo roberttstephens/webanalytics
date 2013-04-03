@@ -23,8 +23,7 @@ func ReadDbConfig() DbConfig {
 	if err != nil {
 		log.Fatal("Unable to read config/db.json: ", err)
 	}
-	err = json.Unmarshal(dbConfigFile, &dbConfig)
-	if err != nil {
+	if err = json.Unmarshal(dbConfigFile, &dbConfig); err != nil {
 		log.Fatal("Unable to unmarshal dbConfig: ", err)
 	}
 	return dbConfig
@@ -49,15 +48,11 @@ func PageViews() {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var id int
-		var ip_address string
-		var url string
-		var time int
-		var browser string
+		var id, time int
+		var ip_address, url, browser string
 		rows.Scan(&id, &ip_address, &url, &time, &browser)
 		fmt.Println(url)
 	}
-	rows.Close()
 }
 
 func SetPageViews(p []PageView) {
