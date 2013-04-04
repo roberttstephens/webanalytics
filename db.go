@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	_ "github.com/bmizerany/pq"
 	"io/ioutil"
+	"log"
 )
 
 type DbConfig struct {
@@ -55,8 +55,8 @@ func PageViews() {
 	}
 }
 
-func SetPageViews(p []PageView) {
-	if len(p) < 1 {
+func SetPageViews(pageViews []PageView) {
+	if len(pageViews) < 1 {
 		return
 	}
 	db := Db()
@@ -65,14 +65,20 @@ func SetPageViews(p []PageView) {
 	if err != nil {
 		log.Println("Unable to prepare statment for PageView: ", err)
 	}
-	for _, p := range p {
-		tx.Stmt(stmt).Exec(p.Url, p.IpAddress, p.UserAgent, p.ScreenHeight, p.ScreenWidth)
+	for k := range pageViews {
+		tx.Stmt(stmt).Exec(
+			pageViews[k].Url,
+			pageViews[k].IpAddress,
+			pageViews[k].UserAgent,
+			pageViews[k].ScreenHeight,
+			pageViews[k].ScreenWidth,
+		)
 	}
 	tx.Commit()
 }
 
-func SetHrefClicks(h []HrefClick) {
-	if len(h) < 1 {
+func SetHrefClicks(hrefClicks []HrefClick) {
+	if len(hrefClicks) < 1 {
 		return
 	}
 	db := Db()
@@ -81,8 +87,16 @@ func SetHrefClicks(h []HrefClick) {
 	if err != nil {
 		log.Println("Unable to prepare statment for HrefClick: ", err)
 	}
-	for _, h := range h {
-		tx.Stmt(stmt).Exec(h.Url, h.IpAddress, h.Href, h.HrefTop, h.HrefRight, h.HrefBottom, h.HrefLeft)
+	for k := range hrefClicks {
+		tx.Stmt(stmt).Exec(
+			hrefClicks[k].Url,
+			hrefClicks[k].IpAddress,
+			hrefClicks[k].Href,
+			hrefClicks[k].HrefTop,
+			hrefClicks[k].HrefRight,
+			hrefClicks[k].HrefBottom,
+			hrefClicks[k].HrefLeft,
+		)
 	}
 	tx.Commit()
 }
