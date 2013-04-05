@@ -1,8 +1,4 @@
 jQuery(document).ready(function() {
-  function getHref($a) {
-    return jQuery($a).attr('href');
-  }
-
   function getPagePosition(element){
     var rect = element.getBoundingClientRect();
     return {
@@ -32,7 +28,7 @@ jQuery(document).ready(function() {
 
   jQuery('a').click(function(event) {
     event.preventDefault();
-    href = getHref(jQuery(this));
+    href = jQuery(this).attr('href');
     // TODO investigate why I added docHeight and docWidth. I think I"ll have to do math.
     //Document height is used with the position of dom elements.
     var docHeight = jQuery(document).height();
