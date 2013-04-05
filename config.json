@@ -1,0 +1,10 @@
+{
+    "batchInsertSeconds": 2,
+    "database": {
+        "host": "192.168.122.151",
+        "port": 5432,
+        "user": "analytics",
+        "pass": "analytics",
+        "name": "analytics"
+    }
+}

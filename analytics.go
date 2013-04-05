@@ -1,30 +1,39 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
 
-type AppConfig struct {
-	BatchInsertSeconds int    `json:"batchInsertSeconds"`
+type Config struct {
+	BatchInsertSeconds int      `json:"batchInsertSeconds"`
+	DbConfig           DbConfig `json:"database"`
 }
 
-func ReadAppConfig() AppConfig {
-	appConfig := AppConfig{}
-	appConfigFile, err := ioutil.ReadFile("config/app.json")
+type DbConfig struct {
+	Host string `json:"host"`
+	Port int    `json:"port"`
+	User string `json:"user"`
+	Pass string `json:"pass"`
+	Name string `json:"name"`
+}
+
+func ReadConfig() Config {
+	config := Config{}
+	configFile, err := ioutil.ReadFile("config.json")
 	if err != nil {
-	        log.Fatal("Unable to read config file: ", err)
+		log.Fatal("Unable to read config file: ", err)
 	}
-	if err = json.Unmarshal(appConfigFile, &appConfig); err != nil {
-	        log.Fatal("Unable to unmarshal appConfigFile into appConfig: ", err)
+	if err = json.Unmarshal(configFile, &config); err != nil {
+		log.Fatal("Unable to unmarshal configFile into config: ", err)
 	}
-	return appConfig
+	return config
 }
 
 type HrefClick struct {
@@ -83,21 +92,19 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	fmt.Fprintf(w, string(responseJson))
 }
 
-func ListenForRecords() {
-	appConfig := ReadAppConfig()
-	seconds := time.Duration(appConfig.BatchInsertSeconds)*time.Second
+func listenForRecords(db *sql.DB, seconds time.Duration) {
 	// Run every x seconds.
 	for _ = range time.Tick(seconds) {
 		// Handle page views.
 		newPageViews := make([]PageView, len(pageViews))
 		copy(newPageViews, pageViews)
-		go SetPageViews(newPageViews)
+		go SetPageViews(db, newPageViews)
 		pageViews = pageViews[0:0]
 
 		// Handle href clicks.
 		newHrefClicks := make([]HrefClick, len(hrefClicks))
 		copy(newHrefClicks, hrefClicks)
-		go SetHrefClicks(newHrefClicks)
+		go SetHrefClicks(db, newHrefClicks)
 		hrefClicks = hrefClicks[0:0]
 	}
 }
@@ -121,14 +128,12 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 }
 
 func main() {
-	logfile, err := os.OpenFile("var/error.log",
-	        os.O_WRONLY|os.O_APPEND|os.O_CREATE|os.O_SYNC, 0600)
-	if err != nil {
-	        log.Fatal("Unable to open log file: ", err)
-	}
-	log.SetOutput(logfile)
+	config := ReadConfig()
+	seconds := time.Duration(config.BatchInsertSeconds) * time.Second
+	dbConfig := config.DbConfig
+	db := Db(dbConfig)
 	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
 	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
-	go ListenForRecords()
+	go listenForRecords(db, seconds)
 	http.ListenAndServe(":8080", nil)
 }
