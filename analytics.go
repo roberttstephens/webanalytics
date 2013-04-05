@@ -13,6 +13,7 @@ import (
 
 type Config struct {
 	BatchInsertSeconds int      `json:"batchInsertSeconds"`
+	Port               int      `json:"port"`
 	DbConfig           DbConfig `json:"database"`
 }
 
@@ -135,5 +136,5 @@ func main() {
 	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
 	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
 	go listenForRecords(db, seconds)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil)
 }
