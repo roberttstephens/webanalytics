@@ -21,7 +21,6 @@ If you want web analytics, you can use one or more of several third party servic
 - cd /path/to/some/directory
 - git clone https://github.com/roberttstephens/analytics.go.git
 - cd analytics.go
-- nano config/db.json #Configure with your database credentials.
-- nano config/app.json
+- nano config.json #Configure with your database credentials.
 - go build -o analytics
 - ./analytics #Runs on port 8080 by default. Change in config/app.json
