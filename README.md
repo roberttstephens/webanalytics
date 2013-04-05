@@ -1,4 +1,4 @@
-#analytics.go
+#webanalytics
 
 ##Overview
 If you want web analytics, you can use one or more of several third party services. Analytics.go is a simple performant open source application that covers some common use cases.
@@ -17,10 +17,17 @@ If you want web analytics, you can use one or more of several third party servic
 - Uses javascript to submit posts.
 
 ##How to use
-- As mentioned in About the project, analytics.go uses postgresql. Create a user and database for analytics.
-- cd /path/to/some/directory
-- git clone https://github.com/roberttstephens/analytics.go.git
-- cd analytics.go
-- nano config.json #Configure with your database credentials.
-- go build -o analytics
-- ./analytics #Runs on port 8080 by default. Change in config/app.json
+
+Webanalytics is broken into two parts. The server side application and the javascript.
+
+###Server side application
+If you have already set up your $GOPATH and added $GOPATH/bin to your $PATH you should:
+- Create a postgres user and database for webanalytics.
+- run "go get github.com/roberttstephens/webanalytics" without quotation marks.
+- Copy $GOPATH/src/github.com/roberttstephens/webanalytics/config.json to somewhere of your choice.
+- Edit config.json to reflect your new database connection and desired port.
+- Run "webanalytics --config path/to/config.json" without quotation marks.
+
+
+###Javascript
+The javascript is in poor shape right now. However, you should be able to copy docs/webanalytics.js to your site, change your domain (and possibly port) and start receiving POSTs.  Please reach out to me if something doesn't work, so I can fix it.

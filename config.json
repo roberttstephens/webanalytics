@@ -4,8 +4,8 @@
     "database": {
         "host": "127.0.0.1",
         "port": 5432,
-        "user": "analytics",
-        "pass": "analytics",
-        "name": "analytics"
+        "user": "webanalytics",
+        "pass": "webanalytics",
+        "name": "webanalytics"
     }
 }
