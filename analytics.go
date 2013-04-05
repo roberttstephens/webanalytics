@@ -52,16 +52,21 @@ type PageView struct {
 
 var pageViews []PageView
 
-func readConfig(configFilePath string) Config {
-	config := Config{}
-	configFile, err := ioutil.ReadFile(configFilePath)
-	if err != nil {
-		log.Fatal("Unable to read config file: ", err)
+func listenForRecords(db *sql.DB, seconds time.Duration) {
+	// Run every x seconds.
+	for _ = range time.Tick(seconds) {
+		// Handle page views.
+		newPageViews := make([]PageView, len(pageViews))
+		copy(newPageViews, pageViews)
+		go SetPageViews(db, newPageViews)
+		pageViews = pageViews[0:0]
+
+		// Handle href clicks.
+		newHrefClicks := make([]HrefClick, len(hrefClicks))
+		copy(newHrefClicks, hrefClicks)
+		go SetHrefClicks(db, newHrefClicks)
+		hrefClicks = hrefClicks[0:0]
 	}
-	if err = json.Unmarshal(configFile, &config); err != nil {
-		log.Fatal("Unable to unmarshal configFile into config: ", err)
-	}
-	return config
 }
 
 func IpAddress(remoteAddr string) string {
@@ -91,21 +96,16 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	w.WriteHeader(201)
 }
 
-func listenForRecords(db *sql.DB, seconds time.Duration) {
-	// Run every x seconds.
-	for _ = range time.Tick(seconds) {
-		// Handle page views.
-		newPageViews := make([]PageView, len(pageViews))
-		copy(newPageViews, pageViews)
-		go SetPageViews(db, newPageViews)
-		pageViews = pageViews[0:0]
-
-		// Handle href clicks.
-		newHrefClicks := make([]HrefClick, len(hrefClicks))
-		copy(newHrefClicks, hrefClicks)
-		go SetHrefClicks(db, newHrefClicks)
-		hrefClicks = hrefClicks[0:0]
+func readConfig(configFilePath string) Config {
+	config := Config{}
+	configFile, err := ioutil.ReadFile(configFilePath)
+	if err != nil {
+		log.Fatal("Unable to read config file: ", err)
 	}
+	if err = json.Unmarshal(configFile, &config); err != nil {
+		log.Fatal("Unable to unmarshal configFile into config: ", err)
+	}
+	return config
 }
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.HandlerFunc {
