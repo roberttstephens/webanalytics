@@ -25,7 +25,7 @@ type DbConfig struct {
 	Name string `json:"name"`
 }
 
-func ReadConfig() Config {
+func readConfig() Config {
 	config := Config{}
 	configFile, err := ioutil.ReadFile("config.json")
 	if err != nil {
@@ -45,7 +45,6 @@ type HrefClick struct {
 	HrefRight  int    `json:"hrefRight"`
 	HrefBottom int    `json:"hrefBottom"`
 	HrefLeft   int    `json:"hrefLeft"`
-	Status     string `json:"status"`
 }
 
 var hrefClicks []HrefClick
@@ -57,7 +56,6 @@ type PageView struct {
 	UserAgent    string `json:"userAgent"`
 	ScreenHeight int    `json:"screenHeight"`
 	ScreenWidth  int    `json:"screenWidth"`
-	Status       string `json:"status"`
 }
 
 var pageViews []PageView
@@ -75,9 +73,7 @@ func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	// Get ip address from http request
 	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
 	hrefClicks = append(hrefClicks, hrefClick)
-	hrefClick.Status = "ok"
-	responseJson, _ := json.Marshal(hrefClick)
-	fmt.Fprintf(w, string(responseJson))
+	w.WriteHeader(201)
 }
 
 func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
@@ -88,9 +84,7 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 	// Get ip address from http request
 	pageView.IpAddress = IpAddress(r.RemoteAddr)
 	pageViews = append(pageViews, pageView)
-	pageView.Status = "ok"
-	responseJson, _ := json.Marshal(pageView)
-	fmt.Fprintf(w, string(responseJson))
+	w.WriteHeader(201)
 }
 
 func listenForRecords(db *sql.DB, seconds time.Duration) {
@@ -129,7 +123,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 }
 
 func main() {
-	config := ReadConfig()
+	config := readConfig()
 	seconds := time.Duration(config.BatchInsertSeconds) * time.Second
 	dbConfig := config.DbConfig
 	db := Db(dbConfig)
