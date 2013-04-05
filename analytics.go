@@ -3,10 +3,12 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -17,24 +19,14 @@ type Config struct {
 	DbConfig           DbConfig `json:"database"`
 }
 
+var configFilePath string
+
 type DbConfig struct {
 	Host string `json:"host"`
 	Port int    `json:"port"`
 	User string `json:"user"`
 	Pass string `json:"pass"`
 	Name string `json:"name"`
-}
-
-func readConfig() Config {
-	config := Config{}
-	configFile, err := ioutil.ReadFile("config.json")
-	if err != nil {
-		log.Fatal("Unable to read config file: ", err)
-	}
-	if err = json.Unmarshal(configFile, &config); err != nil {
-		log.Fatal("Unable to unmarshal configFile into config: ", err)
-	}
-	return config
 }
 
 type HrefClick struct {
@@ -59,6 +51,18 @@ type PageView struct {
 }
 
 var pageViews []PageView
+
+func readConfig(configFilePath string) Config {
+	config := Config{}
+	configFile, err := ioutil.ReadFile(configFilePath)
+	if err != nil {
+		log.Fatal("Unable to read config file: ", err)
+	}
+	if err = json.Unmarshal(configFile, &config); err != nil {
+		log.Fatal("Unable to unmarshal configFile into config: ", err)
+	}
+	return config
+}
 
 func IpAddress(remoteAddr string) string {
 	arr := strings.Split(remoteAddr, ":")
@@ -122,15 +126,22 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 	}
 }
 
-func main() {
-	// Create the handlers for page-view/ and href-click/ POSTs
-	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
-	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
+func init() {
+	goPath := os.Getenv("GOPATH")
+	defaultConfigPath := fmt.Sprintf("%s/src/github.com/roberttstephens/analytics.go/config.json", goPath)
+	flag.StringVar(&configFilePath, "config", defaultConfigPath, "path to config.json")
+}
 
+func main() {
 	// Read the config, initialize the database and listen for records.
-	config := readConfig()
+	flag.Parse()
+	config := readConfig(configFilePath)
 	db := Db(config.DbConfig)
 	seconds := time.Duration(config.BatchInsertSeconds) * time.Second
 	go listenForRecords(db, seconds)
+
+	// Create the handlers for page-view/ and href-click/ POSTs
+	http.HandleFunc("/page-views/", makeHandler(pageViewsHandler))
+	http.HandleFunc("/href-click/", makeHandler(hrefClickHandler))
 	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil)
 }
