@@ -128,7 +128,7 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 
 func init() {
 	goPath := os.Getenv("GOPATH")
-	defaultConfigPath := fmt.Sprintf("%s/src/github.com/roberttstephens/analytics.go/config.json", goPath)
+	defaultConfigPath := fmt.Sprintf("%s/src/github.com/roberttstephens/webanalytics/config.json", goPath)
 	flag.StringVar(&configFilePath, "config", defaultConfigPath, "path to config.json")
 }
 
