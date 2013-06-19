@@ -30,8 +30,8 @@ type DbConfig struct {
 }
 
 type HrefClick struct {
-	IpAddress  string `json:"ipAddress"`
-	Url        string `json:"url"`
+	IPAddress  string `json:"ipAddress"`
+	URL        string `json:"url"`
 	Href       string `json:"href"`
 	HrefTop    int    `json:"hrefTop"`
 	HrefRight  int    `json:"hrefRight"`
@@ -43,8 +43,8 @@ var hrefClicks []HrefClick
 
 type PageView struct {
 	Domain       string `json:"domain"`
-	IpAddress    string `json:"ipAddress"`
-	Url          string `json:"url"`
+	IPAddress    string `json:"ipAddress"`
+	URL          string `json:"url"`
 	UserAgent    string `json:"userAgent"`
 	ScreenHeight int    `json:"screenHeight"`
 	ScreenWidth  int    `json:"screenWidth"`
@@ -69,7 +69,7 @@ func listenForRecords(db *sql.DB, seconds time.Duration) {
 	}
 }
 
-func IpAddress(remoteAddr string) string {
+func IPAddress(remoteAddr string) string {
 	arr := strings.Split(remoteAddr, ":")
 	return arr[0]
 }
@@ -80,7 +80,7 @@ func hrefClickHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 		log.Println("Unable to unmarshal hrefClick: ", err)
 	}
 	// Get ip address from http request
-	hrefClick.IpAddress = IpAddress(r.RemoteAddr)
+	hrefClick.IPAddress = IPAddress(r.RemoteAddr)
 	hrefClicks = append(hrefClicks, hrefClick)
 	w.WriteHeader(201)
 }
@@ -91,7 +91,7 @@ func pageViewsHandler(w http.ResponseWriter, r *http.Request, body []byte) {
 		log.Println("Unable to unmarshal pageView: ", err)
 	}
 	// Get ip address from http request
-	pageView.IpAddress = IpAddress(r.RemoteAddr)
+	pageView.IPAddress = IPAddress(r.RemoteAddr)
 	pageViews = append(pageViews, pageView)
 	w.WriteHeader(201)
 }

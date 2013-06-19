@@ -28,8 +28,8 @@ func SetPageViews(db *sql.DB, pageViews []PageView) {
 	}
 	for k := range pageViews {
 		tx.Stmt(stmt).Exec(
-			pageViews[k].Url,
-			pageViews[k].IpAddress,
+			pageViews[k].URL,
+			pageViews[k].IPAddress,
 			pageViews[k].UserAgent,
 			pageViews[k].ScreenHeight,
 			pageViews[k].ScreenWidth,
@@ -49,8 +49,8 @@ func SetHrefClicks(db *sql.DB, hrefClicks []HrefClick) {
 	}
 	for k := range hrefClicks {
 		tx.Stmt(stmt).Exec(
-			hrefClicks[k].Url,
-			hrefClicks[k].IpAddress,
+			hrefClicks[k].URL,
+			hrefClicks[k].IPAddress,
 			hrefClicks[k].Href,
 			hrefClicks[k].HrefTop,
 			hrefClicks[k].HrefRight,
