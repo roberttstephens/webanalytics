@@ -29,3 +29,9 @@ If you have already set up your $GOPATH and added $GOPATH/bin to your $PATH you 
 
 ###Javascript
 The javascript is in poor shape right now. However, you should be able to copy docs/webanalytics.js to your site, change your domain (and possibly port) and start receiving POSTs.  Please reach out to me if something doesn't work, so I can fix it.
+
+## How to contribute
+Right here on github.com is easiest.
+ - Fork the project.
+ - Make a commit or two.
+ - Perform a [pull request](http://help.github.com/pull-requests/).
