@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +14,7 @@ import (
 	"time"
 )
 
+// Config contains the main configuration settings for the application.
 type Config struct {
 	BatchInsertSeconds int      `json:"batchInsertSeconds"`
 	Port               int      `json:"port"`
@@ -21,6 +23,7 @@ type Config struct {
 
 var configFilePath string
 
+// DbConfig contains the database settings.
 type DbConfig struct {
 	Host string `json:"host"`
 	Port int    `json:"port"`
@@ -105,7 +108,38 @@ func readConfig(configFilePath string) Config {
 	if err = json.Unmarshal(configFile, &config); err != nil {
 		log.Fatal("Unable to unmarshal configFile into config: ", err)
 	}
+	if err = validateConfig(config); err != nil {
+		log.Fatal("Unable to validate config: ", err)
+	}
 	return config
+}
+
+func validateConfig(config Config) error {
+	if config.BatchInsertSeconds < 1 {
+		return errors.New(
+			fmt.Sprintf(
+				"BatchInsertSeconds cannot be less than 1, %d was given.",
+				config.BatchInsertSeconds,
+			),
+		)
+	}
+	if config.Port < 0 || config.Port > 65535 {
+		return errors.New(
+			fmt.Sprintf(
+				"Port must be between 0 and 65535, %d was given.",
+				config.Port,
+			),
+		)
+	}
+	if config.DbConfig.Port < 0 || config.DbConfig.Port > 65535 {
+		return errors.New(
+			fmt.Sprintf(
+				"The database port must be between 0 and 65535, %d was given.",
+				config.DbConfig.Port,
+			),
+		)
+	}
+	return nil
 }
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.HandlerFunc {
