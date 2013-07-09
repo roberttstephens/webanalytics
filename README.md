@@ -3,10 +3,8 @@
 ##Overview
 If you want web analytics, you can use one or more of several third party services. Webanalytics is a simple performant open source application that covers some common use cases.
 
-##Use cases
-
 - How many page views am I getting? (Sometimes it's difficult to tell with varnish)
-- On which URIs?
+- On which URLs?
 - What percentage of users are still on IE x?
 - Which content do users click on?
 
