@@ -10,8 +10,10 @@ If you want web analytics, you can use one or more of several third party servic
 
 ##About the project
 
-- Uses go (golang) to process requests, via a RESTful API.
+- This is not production ready yet, though feel free to try it and report any bugs.
+- Uses go (golang) to process requests.
 - Uses a postgresql database. The database design is purposefully simple in order to be efficient with writes.
+- Inserts into the database in a goroutine so requests are handled concurrently.
 - Uses javascript to submit posts.
 
 ##How to use
