@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -116,27 +115,21 @@ func readConfig(configFilePath string) Config {
 
 func validateConfig(config Config) error {
 	if config.BatchInsertSeconds < 1 {
-		return errors.New(
-			fmt.Sprintf(
-				"BatchInsertSeconds cannot be less than 1, %d was given.",
-				config.BatchInsertSeconds,
-			),
+		return fmt.Errorf(
+			"BatchInsertSeconds cannot be less than 1, %d was given.",
+			config.BatchInsertSeconds,
 		)
 	}
 	if config.Port < 0 || config.Port > 65535 {
-		return errors.New(
-			fmt.Sprintf(
-				"Port must be between 0 and 65535, %d was given.",
-				config.Port,
-			),
+		return fmt.Errorf(
+			"Port must be between 0 and 65535, %d was given.",
+			config.Port,
 		)
 	}
 	if config.DbConfig.Port < 0 || config.DbConfig.Port > 65535 {
-		return errors.New(
-			fmt.Sprintf(
-				"The database port must be between 0 and 65535, %d was given.",
-				config.DbConfig.Port,
-			),
+		return fmt.Errorf(
+			"The database port must be between 0 and 65535, %d was given.",
+			config.DbConfig.Port,
 		)
 	}
 	return nil
