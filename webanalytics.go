@@ -141,6 +141,10 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, []byte)) http.Handl
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.Header().Add("Access-Control-Allow-Headers", "x-requested-with, x-requested-by, Content-Type")
 		w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(200)
+			return
+		}
 		if r.Method != "POST" {
 			w.WriteHeader(405)
 			return
