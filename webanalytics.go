@@ -56,7 +56,7 @@ var pageViews []PageView
 
 func listenForRecords(db *sql.DB, seconds time.Duration) {
 	// Run every x seconds.
-	for _ = range time.Tick(seconds) {
+	for range time.Tick(seconds) {
 		// Handle page views.
 		newPageViews := make([]PageView, len(pageViews))
 		copy(newPageViews, pageViews)
