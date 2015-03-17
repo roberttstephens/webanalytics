@@ -27,13 +27,16 @@ func SetPageViews(db *sql.DB, pageViews []PageView) {
 		log.Println("Unable to prepare statment for PageView: ", err)
 	}
 	for k := range pageViews {
-		tx.Stmt(stmt).Exec(
+		_, err = tx.Stmt(stmt).Exec(
 			pageViews[k].URL,
 			pageViews[k].IPAddress,
 			pageViews[k].UserAgent,
 			pageViews[k].ScreenHeight,
 			pageViews[k].ScreenWidth,
 		)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	tx.Commit()
 }
